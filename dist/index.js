@@ -22,8 +22,8 @@ const http_status_codes_1 = __nccwpck_require__(2828);
 const utils_1 = __nccwpck_require__(918);
 function getAllModules(token) {
     return __awaiter(this, void 0, void 0, function* () {
-        const octokit = github_1.getOctokit(token);
-        const { head } = yield utils_1.getSha(token);
+        const octokit = (0, github_1.getOctokit)(token);
+        const { head } = yield (0, utils_1.getSha)(token);
         const response = yield octokit.rest.git.getTree({
             owner: github_1.context.repo.owner,
             repo: github_1.context.repo.repo,
@@ -31,9 +31,9 @@ function getAllModules(token) {
             recursive: 'true',
         });
         if (response.status !== 200) {
-            throw new Error(http_status_codes_1.getReasonPhrase(response.status));
+            throw new Error((0, http_status_codes_1.getReasonPhrase)(response.status));
         }
-        return utils_1.getModulePaths(response.data.tree, 'path');
+        return (0, utils_1.getModulePaths)(response.data.tree, 'path');
     });
 }
 exports.getAllModules = getAllModules;
@@ -63,8 +63,8 @@ const allModules_1 = __nccwpck_require__(1186);
 const utils_1 = __nccwpck_require__(918);
 function getChangedModules(token) {
     return __awaiter(this, void 0, void 0, function* () {
-        const octokit = github_1.getOctokit(token);
-        const { base, head } = yield utils_1.getSha(token);
+        const octokit = (0, github_1.getOctokit)(token);
+        const { base, head } = yield (0, utils_1.getSha)(token);
         const response = yield octokit.rest.repos.compareCommits({
             base,
             head,
@@ -72,13 +72,13 @@ function getChangedModules(token) {
             repo: github_1.context.repo.repo,
         });
         if (response.status !== 200) {
-            throw new Error(http_status_codes_1.getReasonPhrase(response.status));
+            throw new Error((0, http_status_codes_1.getReasonPhrase)(response.status));
         }
         if (response.data.status === 'behind') {
             throw new Error(`HEAD ${response.data.status}`);
         }
-        const changedModules = utils_1.getModulePaths(response.data.files, 'filename');
-        const allModules = yield allModules_1.getAllModules(token);
+        const changedModules = (0, utils_1.getModulePaths)(response.data.files, 'filename');
+        const allModules = yield (0, allModules_1.getAllModules)(token);
         // filter to exclude deleted modules
         return changedModules.filter((module) => allModules.includes(module));
     });
@@ -95,7 +95,11 @@ exports.getChangedModules = getChangedModules;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -138,17 +142,17 @@ function run() {
             let modules;
             switch (mode) {
                 case 'all':
-                    modules = yield allModules_1.getAllModules(token);
+                    modules = yield (0, allModules_1.getAllModules)(token);
                     break;
                 case 'changed':
-                    modules = yield changedModules_1.getChangedModules(token);
+                    modules = yield (0, changedModules_1.getChangedModules)(token);
                     break;
                 default:
                     throw new Error(`Unknown mode: ${mode}`);
             }
             if (ignored) {
                 const globs = ignored.split('\n').map((item) => item.trim());
-                modules = ignore_1.default().add(globs).filter(modules);
+                modules = (0, ignore_1.default)().add(globs).filter(modules);
             }
             if (modules.length) {
                 core.debug(`Found modules:${modules.map((module) => `\n- ${module}`)}`);
@@ -189,7 +193,7 @@ const github_1 = __nccwpck_require__(5438);
 function getSha(token) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
-        const octokit = github_1.getOctokit(token);
+        const octokit = (0, github_1.getOctokit)(token);
         let base;
         let head;
         switch (github_1.context.eventName) {
@@ -250,14 +254,14 @@ function getSha(token) {
 exports.getSha = getSha;
 function getModulePaths(files, pathProp) {
     const result = files === null || files === void 0 ? void 0 : files.reduce((paths, file) => {
-        const { dir, base, ext } = path_1.parse(file[pathProp]);
+        const { dir, base, ext } = (0, path_1.parse)(file[pathProp]);
         // const globalIgnore = ['.github', '.ci', '.terraform']
         if (dir.includes('.github') ||
             dir.includes('.ci') ||
             dir.includes('.terraform')) {
             return paths;
         }
-        if (ext === '.tf' || base === '.terraform.lock.hcl') {
+        if (ext === '.tf' || ext === '.hcl' || base === '.terraform.lock.hcl') {
             paths.push(dir);
         }
         return paths;
@@ -2893,7 +2897,7 @@ exports.endpoint = endpoint;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var request = __nccwpck_require__(3758);
+var request = __nccwpck_require__(6234);
 var universalUserAgent = __nccwpck_require__(5030);
 
 const VERSION = "4.6.4";
@@ -3004,191 +3008,6 @@ function withCustomRequest(customRequest) {
 
 exports.graphql = graphql$1;
 exports.withCustomRequest = withCustomRequest;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 3758:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var endpoint = __nccwpck_require__(9440);
-var universalUserAgent = __nccwpck_require__(5030);
-var isPlainObject = __nccwpck_require__(3287);
-var nodeFetch = _interopDefault(__nccwpck_require__(467));
-var requestError = __nccwpck_require__(537);
-
-const VERSION = "5.6.0";
-
-function getBufferResponse(response) {
-  return response.arrayBuffer();
-}
-
-function fetchWrapper(requestOptions) {
-  const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
-
-  if (isPlainObject.isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
-    requestOptions.body = JSON.stringify(requestOptions.body);
-  }
-
-  let headers = {};
-  let status;
-  let url;
-  const fetch = requestOptions.request && requestOptions.request.fetch || nodeFetch;
-  return fetch(requestOptions.url, Object.assign({
-    method: requestOptions.method,
-    body: requestOptions.body,
-    headers: requestOptions.headers,
-    redirect: requestOptions.redirect
-  }, // `requestOptions.request.agent` type is incompatible
-  // see https://github.com/octokit/types.ts/pull/264
-  requestOptions.request)).then(async response => {
-    url = response.url;
-    status = response.status;
-
-    for (const keyAndValue of response.headers) {
-      headers[keyAndValue[0]] = keyAndValue[1];
-    }
-
-    if ("deprecation" in headers) {
-      const matches = headers.link && headers.link.match(/<([^>]+)>; rel="deprecation"/);
-      const deprecationLink = matches && matches.pop();
-      log.warn(`[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`);
-    }
-
-    if (status === 204 || status === 205) {
-      return;
-    } // GitHub API returns 200 for HEAD requests
-
-
-    if (requestOptions.method === "HEAD") {
-      if (status < 400) {
-        return;
-      }
-
-      throw new requestError.RequestError(response.statusText, status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: undefined
-        },
-        request: requestOptions
-      });
-    }
-
-    if (status === 304) {
-      throw new requestError.RequestError("Not modified", status, {
-        response: {
-          url,
-          status,
-          headers,
-          data: await getResponseData(response)
-        },
-        request: requestOptions
-      });
-    }
-
-    if (status >= 400) {
-      const data = await getResponseData(response);
-      const error = new requestError.RequestError(toErrorMessage(data), status, {
-        response: {
-          url,
-          status,
-          headers,
-          data
-        },
-        request: requestOptions
-      });
-      throw error;
-    }
-
-    return getResponseData(response);
-  }).then(data => {
-    return {
-      status,
-      url,
-      headers,
-      data
-    };
-  }).catch(error => {
-    if (error instanceof requestError.RequestError) throw error;
-    throw new requestError.RequestError(error.message, 500, {
-      request: requestOptions
-    });
-  });
-}
-
-async function getResponseData(response) {
-  const contentType = response.headers.get("content-type");
-
-  if (/application\/json/.test(contentType)) {
-    return response.json();
-  }
-
-  if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
-    return response.text();
-  }
-
-  return getBufferResponse(response);
-}
-
-function toErrorMessage(data) {
-  if (typeof data === "string") return data; // istanbul ignore else - just in case
-
-  if ("message" in data) {
-    if (Array.isArray(data.errors)) {
-      return `${data.message}: ${data.errors.map(JSON.stringify).join(", ")}`;
-    }
-
-    return data.message;
-  } // istanbul ignore next - just in case
-
-
-  return `Unknown error: ${JSON.stringify(data)}`;
-}
-
-function withDefaults(oldEndpoint, newDefaults) {
-  const endpoint = oldEndpoint.defaults(newDefaults);
-
-  const newApi = function (route, parameters) {
-    const endpointOptions = endpoint.merge(route, parameters);
-
-    if (!endpointOptions.request || !endpointOptions.request.hook) {
-      return fetchWrapper(endpoint.parse(endpointOptions));
-    }
-
-    const request = (route, parameters) => {
-      return fetchWrapper(endpoint.parse(endpoint.merge(route, parameters)));
-    };
-
-    Object.assign(request, {
-      endpoint,
-      defaults: withDefaults.bind(null, endpoint)
-    });
-    return endpointOptions.request.hook(request, endpointOptions);
-  };
-
-  return Object.assign(newApi, {
-    endpoint,
-    defaults: withDefaults.bind(null, endpoint)
-  });
-}
-
-const request = withDefaults(endpoint.endpoint, {
-  headers: {
-    "user-agent": `octokit-request.js/${VERSION} ${universalUserAgent.getUserAgent()}`
-  }
-});
-
-exports.request = request;
 //# sourceMappingURL=index.js.map
 
 
